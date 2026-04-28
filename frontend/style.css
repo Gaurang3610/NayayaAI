@@ -2029,3 +2029,73 @@ body {
   padding-bottom: 10px;
   border-bottom: 2px solid var(--gray-200);
 }
+
+/* ── SVG ICON SYSTEM ── */
+.nav-icon svg {
+  width: 16px; height: 16px;
+  display: block;
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+.sidebar-icon-wrap svg {
+  width: 22px; height: 22px;
+  stroke: var(--accent);
+  display: block;
+}
+.home-card-icon svg {
+  width: 26px; height: 26px;
+  stroke: currentColor;
+  display: block;
+}
+.chat-header-icon svg {
+  width: 22px; height: 22px;
+  stroke: currentColor;
+  display: block;
+}
+.empty-icon svg {
+  width: 48px; height: 48px;
+  stroke: var(--gray-300);
+  display: block;
+  margin: 0 auto;
+}
+.ph-icon svg {
+  width: 44px; height: 44px;
+  stroke: var(--gray-300);
+  display: block;
+  margin: 0 auto;
+}
+.ipc-search-icon svg {
+  width: 16px; height: 16px;
+  stroke: currentColor;
+  display: block;
+}
+.topbar-privacy svg {
+  width: 13px; height: 13px;
+  stroke: currentColor;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+.btn svg {
+  width: 14px; height: 14px;
+  stroke: currentColor;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+.draft-type-btn svg {
+  width: 15px; height: 15px;
+  stroke: currentColor;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+.chat-disclaimer svg {
+  width: 12px; height: 12px;
+  stroke: currentColor;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 3px;
+}
