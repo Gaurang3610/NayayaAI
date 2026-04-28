@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — NyayaAI</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>"/>
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-brand">
+    <div class="brand-logo">
+      <div class="brand-icon">⚖️</div>
+      <div>
+        <div class="brand-name">NyayaAI</div>
+        <div class="brand-tagline">Legal Intelligence</div>
+      </div>
+    </div>
+    <h2 class="brand-headline">Justice Starts with <span>Understanding</span> Your Rights</h2>
+    <p class="brand-desc">NyayaAI brings AI-powered legal intelligence to every citizen. Ask questions, analyze documents, and get guidance on Indian law — instantly.</p>
+    <div class="brand-features">
+      <div class="brand-feature"><div class="feat-icon">⚖️</div><p>IPC sections explained in plain language</p></div>
+      <div class="brand-feature"><div class="feat-icon">✍️</div><p>AI-powered legal draft generator for petitions & notices</p></div>
+      <div class="brand-feature"><div class="feat-icon">🔍</div><p>Search any IPC section for instant legal details</p></div>
+    </div>
+  </div>
+  <div class="auth-form-side">
+    <div class="auth-form-container">
+      <h1 class="auth-form-title">Welcome Back</h1>
+      <p class="auth-form-sub">Sign in to continue to NyayaAI</p>
+      <div id="error-box" class="auth-error-box hidden"><span>⚠️</span><span id="error-msg"></span></div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉️</span>
+          <input type="email" id="email" class="form-control" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="form-error hidden" id="err-email">⚠ Please enter your email</div>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔑</span>
+          <input type="password" id="password" class="form-control" placeholder="Your password" autocomplete="current-password"/>
+          <button class="toggle-pass" onclick="togglePass()" type="button">👁</button>
+        </div>
+        <div class="form-error hidden" id="err-password">⚠ Please enter your password</div>
+      </div>
+      <button class="btn btn-primary auth-btn-full" onclick="doLogin()">Sign In →</button>
+      <div class="auth-switch">Don't have an account? <a href="register.html">Create one</a></div>
+      <div class="privacy-badge"><span>🔒</span> Your data is private and secure</div>
+    </div>
+  </div>
+</div>
+<script>
+  if (localStorage.getItem('nyaya_current_user')) window.location.href = 'index.html';
+  function togglePass() {
+    const inp = document.getElementById('password');
+    const btn = document.querySelector('.toggle-pass');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+  }
+  function doLogin() {
+    ['err-email','err-password'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    ['email','password'].forEach(id => document.getElementById(id).classList.remove('error'));
+    document.getElementById('error-box').classList.add('hidden');
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    let valid = true;
+    if (!email) { document.getElementById('email').classList.add('error'); document.getElementById('err-email').classList.remove('hidden'); valid = false; }
+    if (!password) { document.getElementById('password').classList.add('error'); document.getElementById('err-password').classList.remove('hidden'); valid = false; }
+    if (!valid) return;
+    const users = JSON.parse(localStorage.getItem('nyaya_users') || '[]');
+    const user = users.find(u => u.email === email && u.password === password);
+    if (!user) {
+      document.getElementById('error-msg').textContent = 'Invalid email or password. Please try again.';
+      document.getElementById('error-box').classList.remove('hidden');
+      return;
+    }
+    localStorage.setItem('nyaya_current_user', JSON.stringify({ username: user.username, email: user.email }));
+    window.location.href = 'index.html';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

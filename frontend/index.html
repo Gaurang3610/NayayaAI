@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NyayaAI — Legal Assistant</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>"/>
+  <style>
+    /* ── DRAFT WIZARD CRITICAL OVERRIDES ── */
+    .draft-steps-bar {
+      display: flex !important;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .draft-step-dot {
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 50% !important;
+      background: #eef0f6;
+      border: 2px solid #dde1ee;
+      color: #8b93b0;
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.22s ease;
+    }
+    .draft-step-dot.active {
+      background: #1f4287 !important;
+      border-color: #1f4287 !important;
+      color: #fff !important;
+      box-shadow: 0 0 0 4px rgba(31,66,135,0.15);
+    }
+    .draft-step-dot.done {
+      background: #2ecc8a !important;
+      border-color: #2ecc8a !important;
+      color: #fff !important;
+      font-size: 0 !important;
+    }
+    .draft-step-dot.done::after { content: '✓'; font-size: 0.9rem; }
+    .draft-step-line {
+      width: 48px;
+      height: 2px;
+      background: #dde1ee;
+      flex-shrink: 0;
+      transition: background 0.22s ease;
+    }
+    .draft-step-line.done { background: #2ecc8a; }
+    .draft-step-label-text {
+      font-size: 0.78rem;
+      color: #8b93b0;
+      margin-left: 4px;
+    }
+    .draft-step-card {
+      background: #fff !important;
+      border-radius: 14px;
+      border: 1px solid #dde1ee;
+      box-shadow: 0 2px 12px rgba(13,27,62,0.08);
+      padding: 32px;
+      max-width: 760px;
+      /* NO animation here — was causing invisible state */
+    }
+    .draft-step-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0d1b3e;
+      margin-bottom: 20px;
+    }
+    .draft-type-grid {
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .draft-type-btn {
+      padding: 14px 10px;
+      border-radius: 10px;
+      border: 1.5px solid #dde1ee;
+      background: #f7f8fc;
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: #4a5270;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      line-height: 1.4;
+    }
+    .draft-type-btn:hover {
+      border-color: #1f4287;
+      background: rgba(31,66,135,0.04);
+      color: #0d1b3e;
+    }
+    .draft-type-btn.active {
+      border-color: #1f4287;
+      background: rgba(31,66,135,0.09);
+      color: #1f4287;
+      font-weight: 600;
+    }
+    .draft-step-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #eef0f6;
+    }
+    .draft-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .draft-output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .draft-paper {
+      background: #f7f8fc;
+      border: 1px solid #dde1ee;
+      border-radius: 10px;
+      padding: 28px 30px;
+      font-size: 0.9rem;
+      color: #0d1b3e;
+      line-height: 1.85;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 300px;
+    }
+    .draft-type-tag {
+      font-size: 0.85rem;
+      color: #c9a84c;
+      font-weight: 500;
+    }
+    @media (max-width: 700px) {
+      .draft-type-grid { grid-template-columns: repeat(2,1fr) !important; }
+      .draft-two-col { grid-template-columns: 1fr; gap: 0; }
+      .draft-step-card { padding: 20px; }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+<div class="dashboard">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-icon-wrap">⚖️</div>
+      <div>
+        <div class="sidebar-brand-name">NyayaAI</div>
+        <div class="sidebar-brand-sub">Legal Intelligence</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" onclick="showPage('home', this)">
+        <span class="nav-icon">🏠</span> Home
+      </button>
+      <button class="nav-item" onclick="showPage('chat', this)">
+        <span class="nav-icon">💬</span> Legal Chat
+      </button>
+      <button class="nav-item" onclick="showPage('draft', this)">
+        <span class="nav-icon">✍️</span> Draft Generator
+      </button>
+
+      <div class="nav-section-label">Tools</div>
+      <button class="nav-item" onclick="showPage('document', this)">
+        <span class="nav-icon">📄</span> Document Analyzer
+      </button>
+      <button class="nav-item" onclick="showPage('ipc', this)">
+        <span class="nav-icon">📚</span> IPC Sections
+      </button>
+      <button class="nav-item" onclick="showPage('history', this)">
+        <span class="nav-icon">🕐</span> Chat History
+      </button>
+
+      <div class="nav-section-label">Account</div>
+      <button class="nav-item nav-logout" onclick="doLogout()">
+        <span class="nav-icon">🚪</span> Logout
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">U</div>
+        <div class="sidebar-user-info">
+          <div class="s-name" id="sidebar-username">User</div>
+          <div class="s-role">Legal Member</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <div class="topbar-title" id="topbar-title">NyayaAI Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-privacy">🔒 Private &amp; Secure</div>
+        <div class="topbar-avatar" id="topbar-avatar">U</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- ═══════════════════════════════ HOME ═══════════════════════════════ -->
+      <div class="page active" id="page-home">
+        <div class="home-welcome">
+          <div class="home-welcome-inner">
+            <h1>Welcome back, <span class="accent" id="welcome-name">Counsellor</span> 👋</h1>
+            <p>Your AI-powered legal assistant is ready.</p>
+            <div class="home-welcome-actions">
+              <button class="btn btn-accent" onclick="showPage('chat', document.querySelector('[onclick*=\'chat\']'))">Start Legal Chat →</button>
+              <div class="home-stats-inline">
+                <div class="stat-pill"><strong id="stat-chats">0</strong> chats</div>
+                <div class="stat-pill"><strong>500+</strong> IPC sections</div>
+                <div class="stat-pill"><strong>24/7</strong> available</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-cards">
+          <div class="home-card" onclick="showPage('chat', document.querySelectorAll('.nav-item')[1])">
+            <div class="home-card-icon ic-blue">💬</div>
+            <h3>Legal Chat</h3>
+            <p>Ask any legal question in plain language and get AI-powered guidance based on Indian law.</p>
+          </div>
+          <div class="home-card" onclick="showPage('draft', document.querySelectorAll('.nav-item')[2])">
+            <div class="home-card-icon ic-gold">✍️</div>
+            <h3>Draft Generator</h3>
+            <p>Generate professional legal notices, petitions, affidavits, and agreements in minutes.</p>
+          </div>
+          <div class="home-card" onclick="showPage('document', document.querySelectorAll('.nav-item')[3])">
+            <div class="home-card-icon ic-green">📄</div>
+            <h3>Document Analyzer</h3>
+            <p>Upload contracts and legal documents to get instant AI-powered summaries and risk analysis.</p>
+          </div>
+          <div class="home-card" onclick="showPage('ipc', document.querySelectorAll('.nav-item')[4])">
+            <div class="home-card-icon ic-red">📚</div>
+            <h3>IPC Sections</h3>
+            <p>Search any IPC section for detailed explanations, punishments, and real-world examples.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════ CHAT ═══════════════════════════════ -->
+      <div class="page" id="page-chat">
+        <div class="page-header">
+          <div>
+            <h2>Legal Chat</h2>
+            <p>Ask anything about Indian law — IPC, CrPC, civil matters, rights &amp; more</p>
+          </div>
+          <button class="btn btn-outline" onclick="newChat()" style="font-size:0.85rem;">＋ New Chat</button>
+        </div>
+        <div class="chat-wrapper">
+          <div class="chat-header">
+            <div class="chat-header-icon">⚖️</div>
+            <div class="chat-header-info">
+              <h3>NyayaAI Legal Assistant</h3>
+              <p>Online — Ready to assist</p>
+            </div>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-empty" id="chat-empty">
+              <div class="empty-icon">⚖️</div>
+              <h3>How can I help you today?</h3>
+              <p>Ask me anything about Indian law, your rights, legal procedures, or specific IPC sections.</p>
+              <div class="quick-prompts">
+                <button class="quick-prompt" onclick="sendQuick('What are my rights if arrested?')">What are my rights if arrested?</button>
+                <button class="quick-prompt" onclick="sendQuick('Explain IPC Section 420')">Explain IPC Section 420</button>
+                <button class="quick-prompt" onclick="sendQuick('How to file a consumer complaint?')">How to file a consumer complaint?</button>
+                <button class="quick-prompt" onclick="sendQuick('What is anticipatory bail?')">What is anticipatory bail?</button>
+              </div>
+            </div>
+          </div>
+          <div class="chat-disclaimer">🔒 NyayaAI provides general legal information, not legal advice. Consult a qualified lawyer for your specific case.</div>
+          <div class="chat-input-area">
+            <div class="chat-input-wrap">
+              <textarea class="chat-input" id="chat-input" placeholder="Ask a legal question…" rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
+            </div>
+            <button class="send-btn" onclick="sendMessage()" title="Send">➤</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════ DRAFT GENERATOR ═══════════════════════════════ -->
+      <div class="page" id="page-draft">
+        <div class="page-header">
+          <div>
+            <h2>Draft Generator</h2>
+            <p>Generate professional legal documents powered by AI</p>
+          </div>
+        </div>
+
+        <!-- Step indicator -->
+        <div class="draft-steps-bar">
+          <div class="draft-step-dot active" id="dot-1">1</div>
+          <div class="draft-step-line" id="line-1"></div>
+          <div class="draft-step-dot" id="dot-2">2</div>
+          <div class="draft-step-line" id="line-2"></div>
+          <div class="draft-step-dot" id="dot-3">3</div>
+          <span class="draft-step-label-text" id="step-label-text">Choose type</span>
+        </div>
+
+        <!-- Step 1: Choose type -->
+        <div class="draft-step-card" id="draft-step-1">
+          <div class="draft-step-heading">What type of document do you need?</div>
+          <div class="draft-type-grid" id="draft-type-grid">
+            <div class="draft-type-btn active" data-type="Legal Notice" onclick="selectDraftType(this)">📨 Legal Notice</div>
+            <div class="draft-type-btn" data-type="FIR Complaint" onclick="selectDraftType(this)">🚔 FIR Complaint</div>
+            <div class="draft-type-btn" data-type="Bail Application" onclick="selectDraftType(this)">⚖️ Bail Application</div>
+            <div class="draft-type-btn" data-type="Affidavit" onclick="selectDraftType(this)">📜 Affidavit</div>
+            <div class="draft-type-btn" data-type="RTI Application" onclick="selectDraftType(this)">🏛️ RTI Application</div>
+            <div class="draft-type-btn" data-type="Rent Agreement" onclick="selectDraftType(this)">🏠 Rent Agreement</div>
+            <div class="draft-type-btn" data-type="Consumer Complaint" onclick="selectDraftType(this)">🛒 Consumer Complaint</div>
+            <div class="draft-type-btn" data-type="Divorce Petition" onclick="selectDraftType(this)">💔 Divorce Petition</div>
+          </div>
+          <div class="draft-step-footer">
+            <button class="btn btn-primary" onclick="goToDraftStep2()">Continue →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Details -->
+        <div class="draft-step-card hidden" id="draft-step-2">
+          <div class="draft-step-heading">Fill in the details <span class="draft-type-tag" id="draft-type-display"></span></div>
+
+          <div class="draft-two-col">
+            <div class="form-group">
+              <label for="draft-sender">Your Name / Organization</label>
+              <input type="text" id="draft-sender" class="form-control" placeholder="e.g. Ramesh Kumar / ABC Pvt. Ltd."/>
+            </div>
+            <div class="form-group">
+              <label for="draft-receiver">Opposite Party</label>
+              <input type="text" id="draft-receiver" class="form-control" placeholder="e.g. State Bank of India / John Doe"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="draft-subject">Subject / Issue</label>
+            <input type="text" id="draft-subject" class="form-control" placeholder="e.g. Wrongful termination, property dispute…"/>
+          </div>
+
+          <div class="form-group">
+            <label for="draft-details">Facts &amp; Relief Sought</label>
+            <textarea id="draft-details" class="form-control" rows="4" placeholder="Describe the key facts, dates, and the outcome you are seeking…"></textarea>
+          </div>
+
+          <div class="draft-two-col">
+            <div class="form-group">
+              <label for="draft-city">City / Court</label>
+              <input type="text" id="draft-city" class="form-control" placeholder="e.g. Mumbai, Delhi"/>
+            </div>
+            <div class="form-group">
+              <label for="draft-date">Date</label>
+              <input type="date" id="draft-date" class="form-control"/>
+            </div>
+          </div>
+
+          <div class="draft-step-footer">
+            <button class="btn btn-outline" onclick="goToDraftStep1()">← Back</button>
+            <button class="btn btn-primary" onclick="generateDraft()">✍️ Generate Draft</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Output -->
+        <div class="draft-step-card hidden" id="draft-step-3">
+          <div class="draft-output-header">
+            <div class="draft-step-heading" style="margin-bottom:0">
+              Generated Draft <span class="draft-type-tag" id="draft-type-display-2"></span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-outline" onclick="copyDraft()" style="font-size:0.82rem;padding:8px 14px;">📋 Copy</button>
+              <button class="btn btn-outline" onclick="downloadDraft()" style="font-size:0.82rem;padding:8px 14px;">⬇️ Download</button>
+              <button class="btn btn-outline" onclick="goToDraftStep1()" style="font-size:0.82rem;padding:8px 14px;">＋ New</button>
+            </div>
+          </div>
+          <div class="analyze-loading hidden" id="draft-loading">
+            <div class="analyze-spinner"></div>
+            <p>Generating your legal draft…</p>
+          </div>
+          <div class="draft-result hidden" id="draft-result">
+            <div class="draft-paper" id="draft-content"></div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ═══════════════════════════════ DOCUMENT ANALYZER ═══════════════════════════════ -->
+      <div class="page" id="page-document">
+        <div class="page-header">
+          <div>
+            <h2>Document Analyzer</h2>
+            <p>Upload legal documents for AI-powered analysis &amp; risk assessment</p>
+          </div>
+        </div>
+        <div class="doc-layout">
+          <div class="doc-upload-card">
+            <div class="section-heading">Upload Document</div>
+            <div class="section-sub">Drag &amp; drop or click to upload your legal document</div>
+            <div class="dropzone" id="dropzone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+              <input type="file" id="file-input" accept=".pdf,.docx,.doc,.txt" onchange="handleFileSelect(event)"/>
+              <div class="drop-icon">📁</div>
+              <div class="drop-text">Drop your file here</div>
+              <div class="drop-sub">or click to browse</div>
+              <div class="drop-formats">
+                <span class="format-badge">PDF</span>
+                <span class="format-badge">DOCX</span>
+                <span class="format-badge">DOC</span>
+                <span class="format-badge">TXT</span>
+              </div>
+            </div>
+            <div class="file-preview hidden" id="file-preview">
+              <div class="file-preview-icon" id="file-icon">📄</div>
+              <div class="file-preview-info">
+                <div class="file-name" id="file-name">document.pdf</div>
+                <div class="file-size" id="file-size">0 KB</div>
+              </div>
+              <button class="file-preview-remove" onclick="removeFile()">✕</button>
+            </div>
+            <button class="btn btn-primary analyze-btn" onclick="analyzeDocument()">🔍 Analyze Document</button>
+          </div>
+          <div class="doc-result-card">
+            <div class="section-heading" style="margin-bottom:4px">Analysis Report</div>
+            <div class="section-sub">AI-generated summary will appear here</div>
+            <div class="result-placeholder" id="doc-placeholder">
+              <div class="ph-icon">📊</div>
+              <h3>No Document Analyzed Yet</h3>
+              <p>Upload a legal document on the left and click Analyze to get started.</p>
+            </div>
+            <div class="analyze-loading hidden" id="doc-loading">
+              <div class="analyze-spinner"></div>
+              <p>Analyzing your document…</p>
+            </div>
+            <div class="analysis-result hidden" id="doc-result"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════ IPC SECTIONS ═══════════════════════════════ -->
+      <div class="page" id="page-ipc">
+        <div class="ipc-header">
+          <h2>IPC Sections — Search &amp; Explore</h2>
+          <p>Search any section of the Indian Penal Code for instant, detailed legal information including punishment, bailable status, and real examples.</p>
+        </div>
+
+        <!-- Search bar -->
+        <div class="ipc-search-wrap">
+          <div class="ipc-search-box">
+            <span class="ipc-search-icon">🔍</span>
+            <input type="text" id="ipc-search-input" class="ipc-search-input" placeholder="Search IPC section number or keyword (e.g. 302, murder, fraud, rape…)" oninput="liveIPCSearch()" onkeydown="if(event.key==='Enter') searchIPC()"/>
+            <button class="ipc-search-btn" onclick="searchIPC()">Search</button>
+          </div>
+          <div class="ipc-search-tags">
+            <span class="ipc-tag" onclick="quickIPC('302')">§302 Murder</span>
+            <span class="ipc-tag" onclick="quickIPC('307')">§307 Attempt to Murder</span>
+            <span class="ipc-tag" onclick="quickIPC('376')">§376 Rape</span>
+            <span class="ipc-tag" onclick="quickIPC('420')">§420 Fraud</span>
+            <span class="ipc-tag" onclick="quickIPC('498A')">§498A Domestic Violence</span>
+            <span class="ipc-tag" onclick="quickIPC('304B')">§304B Dowry Death</span>
+            <span class="ipc-tag" onclick="quickIPC('323')">§323 Hurt</span>
+            <span class="ipc-tag" onclick="quickIPC('354')">§354 Molestation</span>
+          </div>
+        </div>
+
+        <!-- Search Result -->
+        <div id="ipc-search-result" class="hidden">
+          <div class="ipc-result-card" id="ipc-result-content"></div>
+        </div>
+
+        <!-- Featured sections -->
+        <div class="ipc-featured-label">Featured Sections</div>
+        <div class="ipc-grid" id="ipc-grid"></div>
+      </div>
+
+      <!-- ═══════════════════════════════ CHAT HISTORY ═══════════════════════════════ -->
+      <div class="page" id="page-history">
+        <div class="page-header">
+          <div>
+            <h2>Chat History</h2>
+            <p>Browse and revisit your past legal conversations</p>
+          </div>
+          <button class="btn btn-danger" onclick="clearHistory()" style="font-size:0.82rem;padding:9px 16px;">🗑 Clear All</button>
+        </div>
+        <div class="history-grid">
+          <div class="history-list">
+            <div class="history-list-header">🕐 Conversations</div>
+            <div class="history-list-body" id="history-list-body"></div>
+          </div>
+          <div class="history-preview" id="history-preview">
+            <div class="history-preview-header">
+              <div class="history-preview-title" id="history-preview-title">Select a conversation</div>
+            </div>
+            <div class="history-messages" id="history-messages">
+              <div class="history-empty">
+                <div style="font-size:40px">💬</div>
+                <p>Select a conversation from the list to view messages</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /dashboard -->
+
+<div id="toast-container"></div>
+
+<script src="script.js"></script>
+
+<script>
+(function() {
+  var _dt = 'Legal Notice';
+
+  window.selectDraftType = function(el) {
+    document.querySelectorAll('.draft-type-btn').forEach(function(b){ b.classList.remove('active'); });
+    el.classList.add('active');
+    _dt = el.dataset.type;
+  };
+
+  function _showOnly(id) {
+    ['draft-step-1','draft-step-2','draft-step-3'].forEach(function(sid){
+      var el = document.getElementById(sid);
+      if (el) el.classList.add('hidden');
+    });
+    var show = document.getElementById(id);
+    if (show) show.classList.remove('hidden');
+  }
+
+  function _setStep(step) {
+    [1,2,3].forEach(function(n){
+      var dot = document.getElementById('dot-' + n);
+      if (!dot) return;
+      dot.classList.remove('active','done');
+      if (n < step) dot.classList.add('done');
+      else if (n === step) dot.classList.add('active');
+    });
+    var labels = ['Choose type','Fill details','Your draft'];
+    var lbl = document.getElementById('step-label-text');
+    if (lbl) lbl.textContent = labels[step-1];
+    ['line-1','line-2'].forEach(function(lid, i){
+      var l = document.getElementById(lid);
+      if (l) l.classList.toggle('done', step > i+1);
+    });
+  }
+
+  window.goToDraftStep1 = function() { _showOnly('draft-step-1'); _setStep(1); };
+
+  window.goToDraftStep2 = function() {
+    _showOnly('draft-step-2');
+    var tag = document.getElementById('draft-type-display');
+    if (tag) tag.textContent = '— ' + _dt;
+    _setStep(2);
+    var dateEl = document.getElementById('draft-date');
+    if (dateEl && !dateEl.value) dateEl.valueAsDate = new Date();
+  };
+
+  window.copyDraft = function() {
+    navigator.clipboard.writeText(document.getElementById('draft-content').innerText)
+      .then(function(){ showToast('Draft copied!', '📋'); });
+  };
+
+  window.downloadDraft = function() {
+    var text = document.getElementById('draft-content').innerText;
+    var blob = new Blob([text], {type:'text/plain'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'NyayaAI_Draft.txt';
+    a.click();
+    showToast('Draft downloaded!', '⬇️');
+  };
+
+  window.generateDraft = function() {
+    var sender   = document.getElementById('draft-sender').value.trim();
+    var receiver = document.getElementById('draft-receiver').value.trim();
+    var subject  = document.getElementById('draft-subject').value.trim();
+    var details  = document.getElementById('draft-details').value.trim();
+    if (!sender || !receiver || !subject || !details) {
+      showToast('Please fill in all required fields', '⚠️'); return;
+    }
+    _showOnly('draft-step-3'); _setStep(3);
+    var tag2 = document.getElementById('draft-type-display-2');
+    if (tag2) tag2.textContent = '— ' + _dt;
+    document.getElementById('draft-loading').classList.remove('hidden');
+    document.getElementById('draft-result').classList.add('hidden');
+    fetch('http://127.0.0.1:5000/draft', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({type:_dt, sender:sender, receiver:receiver,
+        subject:subject, details:details,
+        city: document.getElementById('draft-city').value.trim()})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      document.getElementById('draft-loading').classList.add('hidden');
+      var safe = (data.draft||'No draft returned.')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\n/g,'<br>');
+      document.getElementById('draft-content').innerHTML = safe;
+      document.getElementById('draft-result').classList.remove('hidden');
+      showToast('Draft generated!', '✍️');
+    })
+    .catch(function(){
+      document.getElementById('draft-loading').classList.add('hidden');
+      document.getElementById('draft-content').innerHTML =
+        '<span style="color:#e05555">⚠️ Backend not running — start <strong>app.py</strong> first.</span>';
+      document.getElementById('draft-result').classList.remove('hidden');
+    });
+  };
+})();
+</script>
+
+</body>
+</html>

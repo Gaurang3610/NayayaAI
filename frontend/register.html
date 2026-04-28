@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register — NyayaAI</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>"/>
+</head>
+<body>
+<div class="auth-page">
+  <!-- Brand Panel -->
+  <div class="auth-brand">
+    <div class="brand-logo">
+      <div class="brand-icon">⚖️</div>
+      <div>
+        <div class="brand-name">NyayaAI</div>
+        <div class="brand-tagline">Legal Intelligence</div>
+      </div>
+    </div>
+    <h2 class="brand-headline">Your AI-Powered <span>Legal Companion</span> for Indian Law</h2>
+    <p class="brand-desc">Access expert legal guidance, analyze documents, and understand your rights — all powered by advanced AI trained on Indian legal systems.</p>
+    <div class="brand-features">
+      <div class="brand-feature">
+        <div class="feat-icon">🤖</div>
+        <p>AI Legal Assistant trained on IPC, CrPC, and Indian case law</p>
+      </div>
+      <div class="brand-feature">
+        <div class="feat-icon">📄</div>
+        <p>Instant document analysis for contracts and legal notices</p>
+      </div>
+      <div class="brand-feature">
+        <div class="feat-icon">🔒</div>
+        <p>100% private — your conversations are never shared</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Side -->
+  <div class="auth-form-side">
+    <div class="auth-form-container">
+      <h1 class="auth-form-title">Create Account</h1>
+      <p class="auth-form-sub">Start your journey with NyayaAI today</p>
+
+      <div id="error-box" class="auth-error-box hidden">
+        <span>⚠️</span>
+        <span id="error-msg"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="username">Full Name</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="username" class="form-control" placeholder="Your full name" autocomplete="name"/>
+        </div>
+        <div class="form-error hidden" id="err-username">⚠ Please enter your name</div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉️</span>
+          <input type="email" id="email" class="form-control" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="form-error hidden" id="err-email">⚠ Please enter a valid email</div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔑</span>
+          <input type="password" id="password" class="form-control" placeholder="At least 6 characters" autocomplete="new-password"/>
+          <button class="toggle-pass" onclick="togglePass('password', this)" type="button" aria-label="Toggle password">👁</button>
+        </div>
+        <div class="form-error hidden" id="err-password">⚠ Password must be at least 6 characters</div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirm">Confirm Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔑</span>
+          <input type="password" id="confirm" class="form-control" placeholder="Repeat your password" autocomplete="new-password"/>
+          <button class="toggle-pass" onclick="togglePass('confirm', this)" type="button" aria-label="Toggle confirm password">👁</button>
+        </div>
+        <div class="form-error hidden" id="err-confirm">⚠ Passwords do not match</div>
+      </div>
+
+      <button class="btn btn-primary auth-btn-full" onclick="doRegister()">Create Account →</button>
+
+      <div class="auth-switch">Already have an account? <a href="login.html">Sign in</a></div>
+
+      <div class="privacy-badge">
+        <span>🔒</span> Your data is private and secure — stored only on your device
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Redirect if already logged in
+  if (localStorage.getItem('nyaya_current_user')) window.location.href = 'index.html';
+
+  function togglePass(id, btn) {
+    const inp = document.getElementById(id);
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+  }
+
+  function clearErrors() {
+    ['err-username','err-email','err-password','err-confirm'].forEach(id => {
+      document.getElementById(id).classList.add('hidden');
+    });
+    ['username','email','password','confirm'].forEach(id => {
+      document.getElementById(id).classList.remove('error');
+    });
+    document.getElementById('error-box').classList.add('hidden');
+  }
+
+  function showError(fieldId, errId) {
+    document.getElementById(fieldId).classList.add('error');
+    document.getElementById(errId).classList.remove('hidden');
+  }
+
+  function doRegister() {
+    clearErrors();
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm').value;
+    let valid = true;
+
+    if (!username) { showError('username', 'err-username'); valid = false; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('email', 'err-email'); valid = false; }
+    if (password.length < 6) { showError('password', 'err-password'); valid = false; }
+    if (password !== confirm) { showError('confirm', 'err-confirm'); valid = false; }
+    if (!valid) return;
+
+    const users = JSON.parse(localStorage.getItem('nyaya_users') || '[]');
+    if (users.find(u => u.email === email)) {
+      const box = document.getElementById('error-box');
+      document.getElementById('error-msg').textContent = 'An account with this email already exists.';
+      box.classList.remove('hidden');
+      return;
+    }
+
+    users.push({ username, email, password, createdAt: new Date().toISOString() });
+    localStorage.setItem('nyaya_users', JSON.stringify(users));
+    localStorage.setItem('nyaya_current_user', JSON.stringify({ username, email }));
+
+    window.location.href = 'index.html';
+  }
+
+  // Allow Enter key
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+</script>
+</body>
+</html>
