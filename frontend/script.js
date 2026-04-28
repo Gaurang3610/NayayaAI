@@ -63,7 +63,7 @@ function doLogout() {
 }
 
 // ─── TOAST ────────────────────────────────────
-function showToast(msg, icon = '✅') {
+function showToast(msg, icon = '✓') {
   const c = document.getElementById('toast-container');
   const t = document.createElement('div');
   t.className = 'toast';
@@ -99,7 +99,7 @@ function newChat() {
   // Remove all messages except the empty state
   msgs.innerHTML = `
     <div class="chat-empty" id="chat-empty">
-      <div class="empty-icon">⚖️</div>
+      <div class="empty-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 9l9-3 9 3"/><path d="M3 9c0 2.2 1.8 4 4 4s4-1.8 4-4"/><path d="M17 9c0 2.2-1.8 4-4 4"/><line x1="3" y1="21" x2="21" y2="21"/></svg></div>
       <h3>How can I help you today?</h3>
       <p>Ask me anything about Indian law, your rights, legal procedures, or specific IPC sections.</p>
       <div class="quick-prompts">
@@ -150,7 +150,7 @@ async function sendMessage() {
   typingEl.className = 'msg-row ai';
   typingEl.id = typingId;
   typingEl.innerHTML = `
-    <div class="msg-avatar ai-avatar">⚖</div>
+    <div class="msg-avatar ai-avatar">AI</div>
     <div class="typing-indicator">
       <div class="typing-bubble">
         <div class="typing-dot"></div>
@@ -162,7 +162,7 @@ async function sendMessage() {
   scrollChat();
 
   try {
-    // 🔥 CALL BACKEND
+    // CALL BACKEND
     const res = await fetch("http://127.0.0.1:5000/chat", {
       method: "POST",
       headers: {
@@ -186,7 +186,7 @@ async function sendMessage() {
 
   } catch (err) {
     typingEl.remove();
-    appendMessage('ai', '⚠️ Backend not running. Please start server.', new Date().toLocaleTimeString());
+    appendMessage('ai', 'Backend not running. Please start server.', new Date().toLocaleTimeString());
   }
 }
 
@@ -194,7 +194,7 @@ function appendMessage(role, text, time) {
   const msgs = document.getElementById('chat-messages');
   const div = document.createElement('div');
   div.className = `msg-row ${role}`;
-  const initials = role === 'ai' ? '⚖' : (currentUser?.username?.[0] || 'U').toUpperCase();
+  const initials = role === 'ai' ? 'AI' : (currentUser?.username?.[0] || 'U').toUpperCase();
   div.innerHTML = `
     <div class="msg-avatar ${role}-avatar">${initials}</div>
     <div>
@@ -230,7 +230,7 @@ function renderHistory() {
   }
   body.innerHTML = chatSessions.map((s, i) => `
     <div class="history-item ${i === 0 ? 'active' : ''}" onclick="viewHistory('${s.id}', this)">
-      <div class="history-item-title">💬 ${escapeHtml(s.title)}</div>
+      <div class="history-item-title">${escapeHtml(s.title)}</div>
       <div class="history-item-meta">
         <span>${formatDate(s.createdAt)}</span>
         <span>•</span>
@@ -247,15 +247,15 @@ function viewHistory(id, el) {
   const session = chatSessions.find(s => s.id === id);
   if (!session) return;
 
-  document.getElementById('history-preview-title').textContent = '💬 ' + session.title;
+  document.getElementById('history-preview-title').textContent = session.title;
   const msgs = document.getElementById('history-messages');
   if (!session.messages.length) {
-    msgs.innerHTML = '<div class="history-empty"><div style="font-size:36px">📭</div><p>No messages in this conversation</p></div>';
+    msgs.innerHTML = '<div class="history-empty"><div style="opacity:0.3"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><p>No messages in this conversation</p></div>';
     return;
   }
   msgs.innerHTML = session.messages.map(m => `
     <div class="msg-row ${m.role}">
-      <div class="msg-avatar ${m.role}-avatar">${m.role === 'ai' ? '⚖' : (currentUser?.username?.[0] || 'U').toUpperCase()}</div>
+      <div class="msg-avatar ${m.role}-avatar">${m.role === 'ai' ? 'AI' : (currentUser?.username?.[0] || 'U').toUpperCase()}</div>
       <div>
         <div class="msg-bubble">${escapeHtml(m.content).replace(/\n/g,'<br>')}</div>
         <div class="msg-time">${m.time || ''}</div>
@@ -271,7 +271,7 @@ function clearHistory() {
   currentSessionId = null;
   renderHistory();
   updateStatChats();
-  showToast('Chat history cleared', '🗑️');
+  showToast('Chat history cleared', '✓');
 }
 
 function formatDate(iso) {
@@ -303,7 +303,7 @@ function handleFileSelect(e) {
 }
 function setFile(file) {
   selectedFile = file;
-  const icons = { pdf: '📕', doc: '📘', docx: '📘', txt: '📄' };
+  const icons = { pdf: 'PDF', doc: 'DOC', docx: 'DOC', txt: 'TXT' };
   const ext = file.name.split('.').pop().toLowerCase();
   document.getElementById('file-icon').textContent = icons[ext] || '📄';
   document.getElementById('file-name').textContent = file.name;
@@ -374,13 +374,13 @@ function renderAnalysis(raw) {
 
 async function analyzeDocument() {
   if (!selectedFile) {
-    showToast('Upload a file first', '⚠️');
+    showToast('Upload a file first', '!');
     return;
   }
 
   const ext = selectedFile.name.split('.').pop().toLowerCase();
   if (!['pdf','doc','docx','txt'].includes(ext)) {
-    showToast('Only PDF, DOC, DOCX or TXT files supported', '⚠️');
+    showToast('Unsupported file type', '!');
     return;
   }
 
@@ -398,7 +398,7 @@ async function analyzeDocument() {
 
   if (!text || text.trim().length < 30) {
     document.getElementById('doc-loading').classList.add('hidden');
-    showToast('Could not extract text from this file', '⚠️');
+    showToast('Could not read file', '!');
     return;
   }
 
@@ -419,7 +419,7 @@ async function analyzeDocument() {
 
   } catch (err) {
     document.getElementById('doc-loading').classList.add('hidden');
-    showToast('Backend not running — start app.py first', '❌');
+    showToast('Backend not running', '!');
   }
 }
 
@@ -488,7 +488,7 @@ async function generateDraft() {
   const city = document.getElementById('draft-city').value.trim();
 
   if (!sender || !receiver || !subject || !details) {
-    showToast('Please fill in all required fields', '⚠️');
+    showToast('Fill in all fields', '!');
     return;
   }
 
@@ -517,22 +517,22 @@ async function generateDraft() {
     document.getElementById('draft-loading').classList.add('hidden');
     document.getElementById('draft-content').innerHTML = escapeHtml(data.draft || 'No draft returned.').replace(/\n/g, '<br>');
     document.getElementById('draft-result').classList.remove('hidden');
-    showToast('Draft generated!', '✍️');
+    showToast('Draft ready', '✓');
 
   } catch (err) {
     document.getElementById('draft-loading').classList.add('hidden');
     // Show a clear error message inside the draft paper itself so it's never "empty"
     const errDraft = `DRAFT GENERATION FAILED\n\nThe backend server is not running.\n\nTo fix this:\n1. Open your terminal\n2. Run: python app.py\n3. Make sure Ollama is running: ollama serve\n4. Try again\n\nDocument type: ${selectedDraftType}\nSender: ${document.getElementById('draft-sender').value}\nReceiver: ${document.getElementById('draft-receiver').value}`;
-    document.getElementById('draft-content').innerHTML = '<span style="color:var(--danger)">⚠️ Backend not running — please start the Flask server and try again.</span><br><br>' + escapeHtml(errDraft).replace(/\n/g,'<br>');
+    document.getElementById('draft-content').innerHTML = '<span style="color:var(--danger)">Backend not running — start app.py first.</span><br><br>' + escapeHtml(errDraft).replace(/\n/g,'<br>');
     document.getElementById('draft-result').classList.remove('hidden');
-    showToast('Backend not running. Please start app.py', '❌');
+    showToast('Backend not running', '!');
   }
 }
 
 
 function copyDraft() {
   const text = document.getElementById('draft-content').innerText;
-  navigator.clipboard.writeText(text).then(() => showToast('Draft copied to clipboard!', '📋'));
+  navigator.clipboard.writeText(text).then(() => showToast('Draft copied!', '✓'));
 }
 
 function downloadDraft() {
@@ -542,7 +542,7 @@ function downloadDraft() {
   a.href = URL.createObjectURL(blob);
   a.download = `NyayaAI_${selectedDraftType.replace(/\s/g,'_')}_${Date.now()}.txt`;
   a.click();
-  showToast('Draft downloaded!', '⬇️');
+  showToast('Downloaded', '✓');
 }
 
 // ═══════════════════════════════════════════════
@@ -607,17 +607,17 @@ function renderIPCGrid() {
   if (grid.innerHTML.trim()) return; // already rendered
 
   const colorMap = {
-    'Homicide': ['badge-red','🔴'],
-    'Sexual Offences': ['badge-purple','🟣'],
-    'Domestic Violence': ['badge-orange','🟠'],
-    'Fraud': ['badge-blue','🔵'],
-    'Women Safety': ['badge-purple','🟣'],
-    'Hurt': ['badge-orange','🟠'],
-    'Property': ['badge-blue','🔵'],
-    'Intimidation': ['badge-orange','🟠'],
-    'Negligence': ['badge-orange','🟠'],
-    'Dowry': ['badge-red','🔴'],
-    'Reputation': ['badge-blue','🔵'],
+    'Homicide': ['badge-red',''],
+    'Sexual Offences': ['badge-purple',''],
+    'Domestic Violence': ['badge-orange',''],
+    'Fraud': ['badge-blue',''],
+    'Women Safety': ['badge-purple',''],
+    'Hurt': ['badge-orange',''],
+    'Property': ['badge-blue',''],
+    'Intimidation': ['badge-orange',''],
+    'Negligence': ['badge-orange',''],
+    'Dowry': ['badge-red',''],
+    'Reputation': ['badge-blue',''],
     'General': ['badge-blue','🔵'],
   };
 
@@ -700,29 +700,29 @@ function searchIPC(scroll = true) {
           <div class="ipc-result-title">${match.title}</div>
         </div>
         <div class="ipc-result-meta">
-          ${match.bailable !== 'N/A' ? `<span class="meta-pill ${bailClass}">${match.bailable === 'Yes' ? '✅' : '🔴'} ${match.bailable === 'Yes' ? 'Bailable' : match.bailable === 'No' ? 'Non-Bailable' : 'Varies'}</span>` : ''}
-          ${match.cognizable !== 'N/A' ? `<span class="meta-pill ${cogClass}">${match.cognizable === 'Yes' ? '🚔' : '📋'} ${match.cognizable === 'Yes' ? 'Cognizable' : match.cognizable === 'No' ? 'Non-Cognizable' : 'Varies'}</span>` : ''}
+          ${match.bailable !== 'N/A' ? `<span class="meta-pill ${bailClass}">${match.bailable === 'Yes' ? 'Bailable' : match.bailable === 'No' ? 'Non-Bailable' : 'Varies'}</span>` : ''}
+          ${match.cognizable !== 'N/A' ? `<span class="meta-pill ${cogClass}">${match.cognizable === 'Yes' ? 'Cognizable' : match.cognizable === 'No' ? 'Non-Cognizable' : 'Varies'}</span>` : ''}
           <span class="meta-pill" style="background:rgba(139,147,176,0.2);color:#c8cde0;border:1px solid rgba(139,147,176,0.25)">📂 ${match.category}</span>
         </div>
       </div>
       <div class="ipc-result-body">
         <div class="ipc-r-section">
-          <div class="ipc-r-label">📖 Description</div>
+          <div class="ipc-r-label">Description</div>
           <div class="ipc-r-text">${match.description}</div>
         </div>
         <div class="ipc-r-section">
-          <div class="ipc-r-label">⚖️ Punishment</div>
+          <div class="ipc-r-label">Punishment</div>
           <div class="ipc-punishment-box">
-            <div class="pun-icon">⚖️</div>
+            
             <div>${match.punishment}</div>
           </div>
         </div>
         <div class="ipc-r-section">
-          <div class="ipc-r-label">💡 Illustrative Example</div>
+          <div class="ipc-r-label">Example</div>
           <div class="ipc-r-example">${match.example}</div>
         </div>
         <div class="ipc-r-section">
-          <div class="ipc-r-label">✅ Rights of the Accused / Victim</div>
+          <div class="ipc-r-label">Rights</div>
           <div class="ipc-rights-list">
             ${match.rights.map(r => `<div class="ipc-right-item">${r}</div>`).join('')}
           </div>
