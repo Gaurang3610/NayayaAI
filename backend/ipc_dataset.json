@@ -1,17 +1,127 @@
 [
   {
+    "section": "1",
+    "title": "Title and extent of operation of the Code",
+    "description": "This Act shall be called the Indian Penal Code and shall extend to the whole of India."
+  },
+  {
+    "section": "299",
+    "title": "Culpable Homicide",
+    "description": "Causing death with intention or knowledge that the act is likely to cause death. Punishable with imprisonment up to 10 years and/or fine."
+  },
+  {
+    "section": "300",
+    "title": "Murder (Definition)",
+    "description": "Culpable homicide amounts to murder when done with intention to cause death, or injury sufficient to cause death, or in so imminently dangerous a manner as to be likely to cause death. Punishable under Section 302."
+  },
+  {
     "section": "302",
-    "title": "Murder",
-    "description": "Punishable with death or life imprisonment."
+    "title": "Punishment for Murder",
+    "description": "Punishable with death or life imprisonment, and fine. Trial by Sessions Court. Non-bailable and cognizable."
+  },
+  {
+    "section": "304",
+    "title": "Culpable Homicide not amounting to Murder",
+    "description": "Part I: Life imprisonment or up to 10 years and fine (with intention). Part II: Up to 10 years and/or fine (with knowledge, no intention)."
+  },
+  {
+    "section": "304A",
+    "title": "Causing Death by Negligence",
+    "description": "Causing death by a rash or negligent act not amounting to culpable homicide. Punishable with imprisonment up to 2 years, or fine, or both. Bailable offence."
+  },
+  {
+    "section": "304B",
+    "title": "Dowry Death",
+    "description": "Death of a woman within 7 years of marriage caused by burns, bodily injury, or suspicious circumstances, and she was subjected to dowry harassment. Punishable with minimum 7 years, up to life imprisonment."
+  },
+  {
+    "section": "307",
+    "title": "Attempt to Murder",
+    "description": "Doing any act with intention or knowledge that if it caused death, the person would be guilty of murder. Punishable with up to 10 years and fine; if hurt is caused, life imprisonment."
+  },
+  {
+    "section": "323",
+    "title": "Voluntarily Causing Hurt",
+    "description": "Causing hurt to another person voluntarily. Punishable with up to 1 year imprisonment, or fine up to Rs. 1000, or both. Bailable offence."
+  },
+  {
+    "section": "324",
+    "title": "Voluntarily Causing Hurt by Dangerous Weapons",
+    "description": "Causing hurt using any instrument for shooting, stabbing, cutting, or any instrument which causes fire or burn. Punishable with up to 3 years or fine or both."
+  },
+  {
+    "section": "325",
+    "title": "Voluntarily Causing Grievous Hurt",
+    "description": "Voluntarily causing grievous hurt (as defined in Section 320). Punishable with up to 7 years imprisonment and fine. Non-bailable offence."
+  },
+  {
+    "section": "354",
+    "title": "Assault or Criminal Force on Woman to Outrage Modesty",
+    "description": "Using criminal force or assault against a woman intending to outrage or knowing it will outrage her modesty. Punishable with minimum 1 year, up to 5 years, and fine."
+  },
+  {
+    "section": "354A",
+    "title": "Sexual Harassment",
+    "description": "Physical contact and advances involving unwelcome sexual overtures, demands for sexual favours, showing pornography against a woman's will, or making sexually coloured remarks. Punishable with up to 3 years, or fine, or both."
+  },
+  {
+    "section": "354D",
+    "title": "Stalking",
+    "description": "A man who follows, contacts, or monitors a woman repeatedly despite clear disinterest, or monitors her internet use. First offence: up to 3 years. Repeat offence: up to 5 years."
+  },
+  {
+    "section": "376",
+    "title": "Rape",
+    "description": "Sexual intercourse with a woman without her consent or with consent obtained by coercion, fraud or fear. Punishable with minimum 10 years rigorous imprisonment, extendable to life, and fine."
+  },
+  {
+    "section": "376D",
+    "title": "Gang Rape",
+    "description": "When a woman is raped by one or more persons acting in furtherance of common intention. Each person is punishable with rigorous imprisonment of not less than 20 years, which may extend to life imprisonment, and fine."
+  },
+  {
+    "section": "379",
+    "title": "Theft",
+    "description": "Dishonestly taking movable property out of the possession of another person without consent. Punishable with up to 3 years imprisonment, or fine, or both."
+  },
+  {
+    "section": "392",
+    "title": "Robbery",
+    "description": "Committing or attempting theft, extortion, or using force or fear in the course of committing theft. Punishable with rigorous imprisonment up to 10 years and fine."
+  },
+  {
+    "section": "395",
+    "title": "Dacoity",
+    "description": "When five or more persons conjointly commit or attempt to commit robbery. Punishable with life imprisonment or rigorous imprisonment up to 10 years, and fine."
+  },
+  {
+    "section": "406",
+    "title": "Criminal Breach of Trust",
+    "description": "Dishonest misappropriation or conversion of property entrusted to a person. Punishable with up to 3 years imprisonment, or fine, or both."
   },
   {
     "section": "420",
-    "title": "Cheating",
-    "description": "Punishable up to 7 years imprisonment and fine."
+    "title": "Cheating and Dishonestly Inducing Delivery of Property",
+    "description": "Deceiving another person and thereby dishonestly inducing delivery of property or alteration of a valuable security. Punishable with up to 7 years imprisonment and fine."
   },
   {
     "section": "498A",
-    "title": "Cruelty by Husband",
-    "description": "Punishable up to 3 years imprisonment."
+    "title": "Cruelty by Husband or Relatives",
+    "description": "Subjecting a married woman to cruelty by husband or his relatives, including physical/mental harm or harassment for dowry. Non-bailable, cognizable. Punishable with up to 3 years and fine."
+  },
+  {
+    "section": "499",
+    "title": "Defamation",
+    "description": "Making or publishing any imputation concerning a person intending to harm or knowing it will harm the reputation of such person. Punishable with simple imprisonment up to 2 years, or fine, or both."
+  },
+  {
+    "section": "506",
+    "title": "Criminal Intimidation",
+    "description": "Threatening another person with injury to their person, reputation, or property to cause alarm or compel them to do or not do an act. Punishable with up to 2 years, or fine, or both; up to 7 years if threat is of death or grievous hurt."
+  },
+  {
+    "section": "509",
+    "title": "Word, Gesture or Act Intended to Insult Modesty of Woman",
+    "description": "Uttering any word, making any sound or gesture, or exhibiting any object intending to intrude upon the privacy of a woman or insult her modesty. Punishable with up to 3 years imprisonment and fine."
   }
 ]

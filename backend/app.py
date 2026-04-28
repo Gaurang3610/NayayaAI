@@ -17,7 +17,7 @@ with open("ipc_dataset.json", "r") as f:
 # ─────────────────────────────────────────────
 @app.route("/")
 def home():
-    return "NyayaAI Backend Running 🚀"
+    return "NyayaAI Backend Running "
 
 # ─────────────────────────────────────────────
 # CHAT API  

@@ -423,14 +423,6 @@ async function analyzeDocument() {
   }
 }
 
-function guessDocType(name) {
-  const n = name.toLowerCase();
-  if (n.includes('agreement') || n.includes('contract')) return 'Legal Agreement / Contract';
-  if (n.includes('notice')) return 'Legal Notice';
-  if (n.includes('affidavit')) return 'Affidavit';
-  if (n.includes('petition')) return 'Court Petition';
-  return 'Legal Document';
-}
 
 // ═══════════════════════════════════════════════
 //  DRAFT GENERATOR
