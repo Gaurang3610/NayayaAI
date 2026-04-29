@@ -321,15 +321,48 @@ function setLoadingMsg(msg) {
   if (el) el.textContent = msg;
 }
 
+function preprocessCanvasForOCR(source) {
+  // Convert any image source to a high-contrast greyscale canvas for better OCR
+  let srcCanvas;
+  if (source instanceof HTMLCanvasElement) {
+    srcCanvas = source;
+  } else {
+    // File/blob — create canvas from image element (handled in caller)
+    return source;
+  }
+  const w = srcCanvas.width;
+  const h = srcCanvas.height;
+  const out = document.createElement('canvas');
+  out.width = w;
+  out.height = h;
+  const ctx = out.getContext('2d');
+  ctx.drawImage(srcCanvas, 0, 0);
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    // Greyscale
+    const grey = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+    // Increase contrast — push towards black or white
+    const contrasted = grey < 128 ? Math.max(0, grey - 30) : Math.min(255, grey + 30);
+    d[i] = d[i+1] = d[i+2] = contrasted;
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return out;
+}
+
 async function ocrImageElement(imageData) {
-  // Run Tesseract OCR on a canvas or image element
-  setLoadingMsg('Running OCR on image…');
-  const result = await Tesseract.recognize(imageData, 'eng+hin', {
+  setLoadingMsg('Running OCR…');
+  const source = imageData instanceof HTMLCanvasElement
+    ? preprocessCanvasForOCR(imageData)
+    : imageData;
+  const result = await Tesseract.recognize(source, 'eng+hin', {
     logger: m => {
       if (m.status === 'recognizing text') {
-        setLoadingMsg('OCR progress: ' + Math.round(m.progress * 100) + '%');
+        setLoadingMsg('OCR: ' + Math.round(m.progress * 100) + '%…');
       }
-    }
+    },
+    tessedit_pageseg_mode: '1',       // Automatic page segmentation with OSD
+    preserve_interword_spaces: '1',
   });
   return result.data.text || '';
 }
@@ -362,7 +395,8 @@ async function extractTextFromFile(file) {
   // Image files — run OCR directly
   if (['jpg','jpeg','png','webp'].includes(ext)) {
     setLoadingMsg('Reading image…');
-    return await ocrImageElement(file);
+    const text = await ocrImageElement(file);
+    return { text, isScanned: true };
   }
 
   // PDF — try digital text extraction first, fall back to OCR per page
@@ -405,7 +439,7 @@ async function extractTextFromFile(file) {
     for (let i = 1; i <= pdf.numPages; i++) {
       setLoadingMsg('OCR page ' + i + ' of ' + pdf.numPages + '…');
       const page = await pdf.getPage(i);
-      const viewport = page.getViewport({ scale: 2.0 }); // 2x scale for better OCR accuracy
+      const viewport = page.getViewport({ scale: 3.0 }); // 3x scale for significantly better OCR accuracy
 
       const canvas = document.createElement('canvas');
       canvas.width = viewport.width;
@@ -418,7 +452,7 @@ async function extractTextFromFile(file) {
       if (pageText.trim()) fullText += pageText + '\n\n';
     }
 
-    return fullText.trim();
+    return { text: fullText.trim(), isScanned: true };
   }
 
   return await file.text();
@@ -460,11 +494,18 @@ async function analyzeDocument() {
   document.getElementById('doc-result').classList.add('hidden');
 
   let text = '';
+  let isScanned = false;
   try {
-    text = await extractTextFromFile(selectedFile);
+    const result = await extractTextFromFile(selectedFile);
+    if (typeof result === 'object' && result.text !== undefined) {
+      text = result.text;
+      isScanned = result.isScanned || false;
+    } else {
+      text = result;
+    }
   } catch(err) {
     document.getElementById('doc-loading').classList.add('hidden');
-    showToast('Could not read file: ' + err.message, '❌');
+    showToast('Could not read file: ' + err.message, '!');
     return;
   }
 
@@ -478,7 +519,10 @@ async function analyzeDocument() {
     const res = await fetch("http://127.0.0.1:5000/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: text.slice(0, 8000) }) // cap at 8k chars
+      body: JSON.stringify({
+        text: text.slice(0, 12000),
+        isScanned: isScanned
+      })
     });
 
     const data = await res.json();

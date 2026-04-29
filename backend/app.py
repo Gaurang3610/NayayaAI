@@ -153,6 +153,7 @@ Content: {data.get('details')}
 @app.route("/analyze", methods=["POST"])
 def analyze():
     text = request.json.get("text", "")
+    is_scanned = request.json.get("isScanned", False)
 
     #block non-legal docs
     if len(text.strip()) < 20:
@@ -160,16 +161,44 @@ def analyze():
             "analysis": "Please provide a valid legal document."
         })
 
+    scanned_note = """
+IMPORTANT: This text was extracted via OCR from a scanned or photographed document.
+The text may contain OCR errors, garbled words, or missing characters.
+You MUST work with what is provided — do NOT say the text is unreadable or that you cannot analyze it.
+Infer meaning from context even if individual words are garbled. Focus on extracting maximum useful legal information.
+""" if is_scanned else ""
+
     prompt = f"""
-You are a legal assistant specializing ONLY in Indian law.
+You are a senior legal assistant specializing in Indian law with expertise in document analysis.
 
-Analyze the following document and provide:
+{scanned_note}
 
-1. Summary (short)
+Analyze the following document thoroughly and provide a detailed structured report with:
+
+1. Summary
+   - What type of document is this (agreement, notice, petition, order, FIR, etc.)
+   - Who are the parties involved
+   - What is the core subject matter
+   - Date and jurisdiction if mentioned
+
 2. Key Legal Risks
-3. Important Clauses
+   - Identify specific risks for each party
+   - Flag any legally problematic or ambiguous clauses
+   - Note any missing standard protections
 
-Keep response structured and professional.
+3. Important Clauses
+   - List and explain each significant clause
+   - Highlight obligations, rights, penalties, and timelines
+
+4. Applicable Indian Laws
+   - Which IPC sections, acts, or legal provisions are relevant
+   - Any compliance requirements
+
+5. Recommendations
+   - What should each party be cautious about
+   - Suggested modifications or precautions
+
+Be specific, cite exact terms from the document where possible, and be thorough.
 
 Document:
 {text}
