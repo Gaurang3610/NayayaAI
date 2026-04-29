@@ -316,28 +316,39 @@ function removeFile() {
   document.getElementById('file-input').value = '';
 }
 
+function setLoadingMsg(msg) {
+  const el = document.getElementById('doc-loading-msg');
+  if (el) el.textContent = msg;
+}
+
+async function ocrImageElement(imageData) {
+  // Run Tesseract OCR on a canvas or image element
+  setLoadingMsg('Running OCR on image…');
+  const result = await Tesseract.recognize(imageData, 'eng+hin', {
+    logger: m => {
+      if (m.status === 'recognizing text') {
+        setLoadingMsg('OCR progress: ' + Math.round(m.progress * 100) + '%');
+      }
+    }
+  });
+  return result.data.text || '';
+}
+
 async function extractTextFromFile(file) {
   const ext = file.name.split('.').pop().toLowerCase();
 
+  // Plain text
   if (ext === 'txt') {
     return await file.text();
   }
 
-  if (ext === 'pdf') {
-    // Read PDF as text (basic extraction - works for text-based PDFs)
-    const text = await file.text();
-    // Strip binary noise, keep readable chars
-    return text.replace(/[^\x20-\x7E\n\r]/g, ' ').replace(/\s{3,}/g, '\n').trim();
-  }
-
+  // Word documents
   if (ext === 'docx' || ext === 'doc') {
-    // Use mammoth.js for proper .docx text extraction
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         try {
-          const arrayBuffer = e.target.result;
-          const result = await mammoth.extractRawText({ arrayBuffer });
+          const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
           resolve(result.value || '');
         } catch(err) {
           reject(new Error('Could not read .docx file: ' + err.message));
@@ -348,7 +359,68 @@ async function extractTextFromFile(file) {
     });
   }
 
-  // Fallback
+  // Image files — run OCR directly
+  if (['jpg','jpeg','png','webp'].includes(ext)) {
+    setLoadingMsg('Reading image…');
+    return await ocrImageElement(file);
+  }
+
+  // PDF — try digital text extraction first, fall back to OCR per page
+  if (ext === 'pdf') {
+    setLoadingMsg('Reading PDF…');
+    const arrayBuffer = await file.arrayBuffer();
+
+    // Set PDF.js worker
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    } else {
+      throw new Error('PDF.js not loaded');
+    }
+
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+    let digitalPageCount = 0;
+
+    // Pass 1: try digital text extraction on all pages
+    setLoadingMsg('Extracting text from PDF…');
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map(item => item.str).join(' ').trim();
+      if (pageText.length > 20) {
+        fullText += pageText + '\n\n';
+        digitalPageCount++;
+      }
+    }
+
+    // If we got good digital text, return it
+    if (fullText.trim().length > 100 && digitalPageCount > 0) {
+      return fullText.trim();
+    }
+
+    // Pass 2: scanned PDF — render each page to canvas and OCR it
+    setLoadingMsg('Scanned PDF detected — starting OCR…');
+    fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      setLoadingMsg('OCR page ' + i + ' of ' + pdf.numPages + '…');
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 2.0 }); // 2x scale for better OCR accuracy
+
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext('2d');
+
+      await page.render({ canvasContext: ctx, viewport }).promise;
+
+      const pageText = await ocrImageElement(canvas);
+      if (pageText.trim()) fullText += pageText + '\n\n';
+    }
+
+    return fullText.trim();
+  }
+
   return await file.text();
 }
 

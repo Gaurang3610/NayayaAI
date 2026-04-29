@@ -1204,6 +1204,14 @@ body {
   flex-wrap: wrap;
 }
 
+.drop-scan-hint {
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  margin-top: 6px;
+  text-align: center;
+  font-style: italic;
+}
+
 .format-badge {
   padding: 4px 12px;
   border-radius: 20px;
